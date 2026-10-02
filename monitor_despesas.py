@@ -39,6 +39,66 @@ combo_meses = ttk.Combobox(frame,values=meses)
 label_combobox = tk.Label(frame,text="Mês referente : ",font=("Arial",15))
 combo_meses.bind("<<ComboboxSelected>>", lambda e: carregar_despesas())
 
+categorias = ["Alimentação", "Transporte", "Lazer", "Contas"]
+valores = [450.00, 150.00, 200.00, 800.00]
+
+### grafico de pizza
+figura, ax = plt.subplots(figsize=(5, 4))
+ax.pie(
+    valores,
+    labels=categorias,
+    autopct="%1.1f%%",
+    startangle=90,
+    colors=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"],
+)
+ax.set_title("Distribuição de Gastos")
+
+canvas = FigureCanvasTkAgg(figura, master=janela)
+canvas.draw()
+canvas_widget = canvas.get_tk_widget()
+
+
+##funcao para atualizar o grafico de pizza
+def atualizar_grafico(despesas_dict):
+    # 1. Limpa o gráfico anterior completamente
+    ax.clear()
+
+    # 2. Se houver despesas no mês selecionado, desenha a pizza
+    if despesas_dict:
+        categorias = list(despesas_dict.keys())
+        valores = list(despesas_dict.values())
+
+        ax.pie(
+            valores,
+            labels=categorias,
+            autopct="%1.1f%%",
+            startangle=90,
+            colors=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99", "#c2c2f0"],
+            textprops={"fontsize": 11},
+        )
+        ax.set_title(
+            f"Gastos de {combo_meses.get()}", fontsize=13, fontweight="bold"
+        )
+
+    # 3. Se o mês estiver sem nenhuma despesa cadastrada
+    else:
+        ax.text(
+            0.5,
+            0.5,
+            "Nenhuma despesa para este mês",
+            ha="center",
+            va="center",
+            fontsize=12,
+            color="gray",
+        )
+        ax.axis("off")  # Oculta as bordas/eixos
+
+    # 4. FORÇA O MATPLOTLIB A REDESENHAR A TELA NO TKINTER
+    canvas.draw()
+
+
+
+
 ######lendo .txt para mostrar as despesas cadastradas
 ### formato---    MES -- categoria : valor
 def carregar_despesas():
@@ -65,6 +125,7 @@ def carregar_despesas():
                         categoria, valor_str = resto.split(":")
 
                         categoria = categoria.strip()
+                        _,valor_str = valor_str.split("$")
                         valor_float = float(valor_str.strip())
 
                         # Soma o valor no dicionário da categoria
@@ -77,7 +138,7 @@ def carregar_despesas():
         pass
 
     # 3. Chama a atualização do gráfico com o dicionário filtrado
-    #atualizar_grafico(despesas_mes) 
+    atualizar_grafico(despesas_mes) 
 
 carregar_despesas()
 
@@ -91,8 +152,6 @@ def adicionar():
 ############### Fim funcao adicionar#############
 
 
-categorias = ["Alimentação", "Transporte", "Lazer", "Contas"]
-valores = [450.00, 150.00, 200.00, 800.00]
 
 
 #caixa de digitacao de despesas
@@ -111,7 +170,6 @@ botao_excluir = tk.Button(frame,text="EXCLUIR",font=("Arial",15))
 
 
 
-figura, ax = plt.subplots(figsize=(5, 4))
 ax.pie(
     valores,
     labels=categorias,
